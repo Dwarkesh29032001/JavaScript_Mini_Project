@@ -16,7 +16,7 @@
         </div>
         
         <div class="weather" >
-            <img src="./rain.png" class="weather-icon" >
+            <img src="./rain.png" class="weather-icon"  id="weather-icon">
             <h1 class="temp"> 22°c </h1>
             <h2 class="city" >New York </h2>
         <div class="details">
@@ -42,55 +42,71 @@
 
     </div>
 
-    <script>
+    <audio id="weather-sound" src=""></audio>
 
-        const apiKey = "bcd31754153abaeabe8b7e5c6a0c2ae9" ;
-        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=" ;
+    <script>
+        const apiKey = "bcd31754153abaeabe8b7e5c6a0c2ae9";
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
 
         const searchBox = document.querySelector(".search input");
         const searchBtn = document.querySelector(".search button");
-        const weatherIcon = document.querySelector(".weather-icon") ;
+        const weatherIcon = document.querySelector(".weather-icon");
+        const weatherSound = document.getElementById("weather-sound");
 
+        async function checkWeather(city) {
+            const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+            const data = await response.json();
 
-        async function checkWeather(city){
-            const response = await fetch(apiUrl + city + `&appid=${apiKey}` ) ;
-            var data = await response.json() ;
+            document.querySelector(".city").innerHTML = data.name;
+            document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°c";
+            document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+            document.querySelector(".wind").innerHTML = data.wind.speed + "Km/h";
 
-            console.log(data) ;
+            let weather = data.weather[0].main;
+            let iconSrc, soundSrc;
 
-            document.querySelector(".city").innerHTML = data.name ;
-            document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°c" ;
-            document.querySelector(".humidity").innerHTML = data.main.humidity + "%" ;
-            document.querySelector(".wind").innerHTML = data.wind.speed + "Km/h" ;
-
-            if(data.weather[0].main == "Clouds")
-            {
-                weatherIcon.src =  "./cloud.png" ;
-            } 
-            else if(data.weather[0].main == "Rain"){
-                weatherIcon.src =  "./rain1.png" ;
+            switch (weather) {
+                case "Clouds":
+                    iconSrc = "./cloud.png";
+                    soundSrc = "./clear.mp3";
+                    break;
+                case "Rain":
+                    iconSrc = "./rain1.png";
+                    soundSrc = "./Thunder.mp3";
+                    break;
+                case "Drizzle":
+                    iconSrc = "./drizzle.png";
+                    soundSrc = "./RainFall.mp3";
+                    break;
+                case "Mist":
+                    iconSrc = "./mist.png";
+                    soundSrc = "./clear.mp3";
+                    break;
+                case "Snow":
+                    iconSrc = "./snow.png";
+                    soundSrc = "./RainFall.mp3";
+                    break;
+                default:
+                    iconSrc = "./default.png";
+                    soundSrc = "./clear.mp3";
+                    break;
             }
-            else if(data.weather[0].main == "Drizzle"){
-                weatherIcon.src =  "./drizzle.png" ;
-            }
 
-            else if(data.weather[0].main == "Mist"){
-                weatherIcon.src =  "./mist.png" ;
-            }
+            weatherIcon.src = iconSrc;
+            weatherSound.src = soundSrc;
+            weatherSound.play().catch(error => {
+                console.error("Error playing sound:", error);
+            });
 
-            else if(data.weather[0].main == "Snow"){
-                weatherIcon.src =  "./snow.png" ;
-            }
-
+            weatherIcon.classList.add("fade-in");
+            setTimeout(() => {
+                weatherIcon.classList.remove("fade-in");
+            }, 1000);
         }
 
-searchBtn.addEventListener("click" , ()=>{
-    checkWeather( searchBox.value ) ;
-})
-
-
-
-        
+        searchBtn.addEventListener("click", () => {
+            checkWeather(searchBox.value);
+        });
     </script>
     
 </body>
